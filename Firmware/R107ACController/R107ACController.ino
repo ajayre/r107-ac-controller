@@ -1,5 +1,5 @@
 // R107/C107 AC Controller (manual climate control)
-// $Id: $
+// (C) Andy Ayre, 2020, all rights reserved
 
 // the setup function runs once when you press reset or power the board
 void setup() {
