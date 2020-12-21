@@ -16,7 +16,7 @@ The prototype uses the following hardware:
 
 * Arduino Nano - https://www.arduino.cc/en/pmwiki.php?n=Main/ArduinoBoardNano
 * Adafruit Thermocouple Amplifier MAX31855 breakout board - https://www.adafruit.com/product/269
-* Adafruit Adafruit Power Relay FeatherWing - https://www.adafruit.com/product/3191
+* Adafruit Power Relay FeatherWing - https://www.adafruit.com/product/3191
 
 ## Development Tools
 
