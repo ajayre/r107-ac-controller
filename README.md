@@ -10,7 +10,15 @@ This work is copyright (C) Andrew Ayre 2020 and no reproduction or unauthorized 
 
 USE AT YOUR OWN RISK. NO WARRANTY, EXPRESS OR IMPLIED.
 
-## Building
+## Prototype Hardware
+
+The prototype uses the following hardware:
+
+* Arduino Nano - https://www.arduino.cc/en/pmwiki.php?n=Main/ArduinoBoardNano
+* Adafruit Thermocouple Amplifier MAX31855 breakout board - https://www.adafruit.com/product/269
+* Adafruit Adafruit Power Relay FeatherWing - https://www.adafruit.com/product/3191
+
+## Development Tools
 
 * Install Microsoft Visual Studio Community Edition 2017 - https://visualstudio.microsoft.com/vs/older-downloads/
 * Install Visual Micro - https://marketplace.visualstudio.com/items?itemName=VisualMicro.ArduinoIDEforVisualStudio
