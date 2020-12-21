@@ -1,4 +1,4 @@
-# R107 Air Conditioning Controller
+# R107/C107 Air Conditioning Controller
 
 This is an AC controller for the original Mercedes-Benz R107/C107 manual climate control system. The original system is identified by four vertical levers.
 
