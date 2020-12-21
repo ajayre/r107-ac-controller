@@ -9,3 +9,8 @@ The aim of this project is to replace the Ranco electro-mechanical part of the A
 This work is copyright (C) Andrew Ayre 2020 and no reproduction or unauthorized use is permitted.
 
 USE AT YOUR OWN RISK. NO WARRANTY, EXPRESS OR IMPLIED.
+
+## Building
+
+* Install Microsoft Visual Studio Community Edition 2017 - https://visualstudio.microsoft.com/vs/older-downloads/
+* Install Visual Micro - https://marketplace.visualstudio.com/items?itemName=VisualMicro.ArduinoIDEforVisualStudio
