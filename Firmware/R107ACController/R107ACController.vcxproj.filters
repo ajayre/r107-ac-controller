@@ -35,5 +35,8 @@
     <ClInclude Include="src\Adafruit-MAX31855\Adafruit_MAX31855.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="__vm\.R107ACController.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
