@@ -21,7 +21,18 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="__vm\.R107ACController.vsarduino.h">
+    <ClCompile Include="src\Adafruit-MAX31855\Adafruit_MAX31855.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Adafruit_BusIO\Adafruit_BusIO_Register.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Adafruit_BusIO\Adafruit_SPIDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Adafruit-MAX31855\Adafruit_MAX31855.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
