@@ -17,6 +17,11 @@
 // thermocouple chip select (uses hardware SPI)
 #define CS_THERMOCOUPLE 8 // D8
 
+// thermocouple errors
+#define THERMOCOUPLE_ERROR_SCV 0x04 // short circuit to vcc
+#define THERMOCOUPLE_ERROR_SCG 0x02 // short circuit to ground
+#define THERMOCOUPLE_ERROR_OC  0x01 // open connection
+
 /*
  Notes:
  Don't let compressor cycle on and off too often - either use a minimum time or hysteresis
@@ -45,6 +50,8 @@ static void CompressorOff
   void
   )
 {
+  Serial.println("Compressor off");
+
   // fixme - to do
 }
 
@@ -54,6 +61,8 @@ static void CompressorOn
   void
   )
 {
+  Serial.println("Compressor on");
+
   // fixme - to do
 }
 
@@ -110,7 +119,13 @@ void loop
   double EvapTemperature = Thermocouple.readCelsius();
   if (isnan(EvapTemperature))
   {
-    Serial.println("Fault");
+    Serial.print("Thermocouple fault ");
+    uint8_t ThermocoupleError = Thermocouple.readError();
+    if ((ThermocoupleError & THERMOCOUPLE_ERROR_SCV) == THERMOCOUPLE_ERROR_SCV) Serial.print("short-circuit to Vcc ");
+    if ((ThermocoupleError & THERMOCOUPLE_ERROR_SCG) == THERMOCOUPLE_ERROR_SCG) Serial.print("short-circuit to Gnd ");
+    if ((ThermocoupleError & THERMOCOUPLE_ERROR_OC)  == THERMOCOUPLE_ERROR_OC)  Serial.print("open circuit");
+    Serial.println();
+
     ACState = FAULT;
     Faulted = true;
     CompressorOff();
@@ -124,6 +139,16 @@ void loop
     delay(250);
   }
 #endif // _DEBUG == 1
+
+  // check if SPI is non-functional
+  if ((AmbientTemperature == 0) && (EvapTemperature == 0) && !Faulted)
+  {
+    Serial.println("No response from thermocouple controller");
+    ACState = OFF;
+    CompressorOff();
+    // fixme - to do - reset micro
+    while (1);
+  }
 
   // execute state machine
   switch (ACState)
