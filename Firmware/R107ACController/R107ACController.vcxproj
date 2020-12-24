@@ -132,7 +132,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties config.Debug.customdebug_nano_atmega328old_debugger_type="universal" arduino.upload.port="COM8" VM_ADDITIONAL_COMPILER_FLAGS="-I&quot;src/Adafruit-MAX31855&quot; -I&quot;src/Adafruit_BusIO&quot;" />
+      <UserProperties config.Debug.customdebug_nano_atmega328old_debugger_type="universal" arduino.upload.port="COM9" VM_ADDITIONAL_COMPILER_FLAGS="-I&quot;src/Adafruit-MAX31855&quot; -I&quot;src/Adafruit_BusIO&quot;" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

@@ -1,7 +1,9 @@
 // R107/C107 AC Controller (manual climate control)
 // (C) Andy Ayre, 2020, all rights reserved
+// https://github.com/ajayre/r107-ac-controller
 
 #include "src/Adafruit-MAX31855/Adafruit_MAX31855.h"
+#include <avr/wdt.h>
 
 // the version of this firmware
 #define VERSION "1.00"
@@ -17,16 +19,16 @@
 // thermocouple chip select (uses hardware SPI)
 #define CS_THERMOCOUPLE 8 // D8
 
+// pin to control the blower motor
+#define BLOWER_MOTOR 9 // D9
+
+// pin to control the compressor
+#define COMPRESSOR 10 // D10
+
 // thermocouple errors
 #define THERMOCOUPLE_ERROR_SCV 0x04 // short circuit to vcc
 #define THERMOCOUPLE_ERROR_SCG 0x02 // short circuit to ground
 #define THERMOCOUPLE_ERROR_OC  0x01 // open connection
-
-/*
- Notes:
- Don't let compressor cycle on and off too often - either use a minimum time or hysteresis
- SS pin must be pulled high
-*/
 
 // ac state machine states
 typedef enum _acstates
@@ -44,27 +46,23 @@ static Adafruit_MAX31855 Thermocouple(CS_THERMOCOUPLE);
 // current ac state
 static ACSTATE ACState = OFF;
 
-// turns the compressor off
-static void CompressorOff
-  (
-  void
-  )
-{
-  Serial.println("Compressor off");
+// blower control macros (connect to NO on relay)
+#if _DEBUG == 1
+#define BLOWER_OFF digitalWrite(BLOWER_MOTOR, LOW); Serial.println("Blower off");
+#define BLOWER_ON  digitalWrite(BLOWER_MOTOR, HIGH); Serial.println("Blower on");
+#else
+#define BLOWER_OFF digitalWrite(BLOWER_MOTOR, LOW)
+#define BLOWER_ON  digitalWrite(BLOWER_MOTOR, HIGH)
+#endif
 
-  // fixme - to do
-}
-
-// turns the compressor on
-static void CompressorOn
-  (
-  void
-  )
-{
-  Serial.println("Compressor on");
-
-  // fixme - to do
-}
+// compressor control macros (connect to NO on relay)
+#if _DEBUG == 1
+#define COMPRESSOR_OFF digitalWrite(COMPRESSOR, LOW); Serial.println("Compressor off")
+#define COMPRESSOR_ON  digitalWrite(COMPRESSOR, HIGH); Serial.println("Compressor on")
+#else
+#define COMPRESSOR_OFF digitalWrite(COMPRESSOR, LOW)
+#define COMPRESSOR_ON  digitalWrite(COMPRESSOR, HIGH)
+#endif // _DEBUG == 1
 
 // the setup function runs once when you press reset or power the board
 void setup
@@ -72,12 +70,27 @@ void setup
   void
   )
 {
-  // fixme - to do - enable watchdog, enable brownout detection
+  // fixme - to do - enable brownout detection
+
+  // enable watchdog timers with eight second timeout
+  // fixme - to do - this does not work with the 'old' bootloader, it will continually reset after the first
+  // watchdog reset. need to upgrade to the new bootloader
+  //wdt_enable(WDTO_8S);
+
+  // configure blower motor
+  pinMode(BLOWER_MOTOR, OUTPUT);
+  BLOWER_OFF;
+
+  // configure compressor
+  pinMode(COMPRESSOR, OUTPUT);
+  COMPRESSOR_OFF;
 
   // start serial output
   Serial.begin(57600);
   while (!Serial) delay(1);
   Serial.flush();
+
+  wdt_reset();
 
   // print banner
   Serial.println("R107 C107 AC Controller (C) Andy Ayre 2020");
@@ -89,16 +102,22 @@ void setup
   Serial.println("Init");
   ACState = INIT;
 
-  // wait for thermocouple to become ready
+  // wait for thermocouple to become ready, comes from the adafruit example
   delay(500);
+
+  wdt_reset();
 
   // start thermocouple
   if (!Thermocouple.begin())
   {
     Serial.println("Failed to initalize thermocouple");
     ACState = OFF;
-    while (1); // fixme - reset device
+
+    // wait for reset
+    while (1);
   }
+
+  wdt_reset();
 
   Serial.println("Ready");
   ACState = READY;
@@ -111,7 +130,6 @@ void loop
   )
 {
   // get temperature of cabin
-  //Serial.print("Internal Temp = ");
   double AmbientTemperature = Thermocouple.readInternal();
 
   // get current evap temperature and check for fault
@@ -121,14 +139,14 @@ void loop
   {
     Serial.print("Thermocouple fault ");
     uint8_t ThermocoupleError = Thermocouple.readError();
-    if ((ThermocoupleError & THERMOCOUPLE_ERROR_SCV) == THERMOCOUPLE_ERROR_SCV) Serial.print("short-circuit to Vcc ");
-    if ((ThermocoupleError & THERMOCOUPLE_ERROR_SCG) == THERMOCOUPLE_ERROR_SCG) Serial.print("short-circuit to Gnd ");
-    if ((ThermocoupleError & THERMOCOUPLE_ERROR_OC)  == THERMOCOUPLE_ERROR_OC)  Serial.print("open circuit");
+    if ((ThermocoupleError & THERMOCOUPLE_ERROR_SCV) == THERMOCOUPLE_ERROR_SCV) Serial.print("(short-circuit to Vcc)");
+    if ((ThermocoupleError & THERMOCOUPLE_ERROR_SCG) == THERMOCOUPLE_ERROR_SCG) Serial.print("(short-circuit to Gnd)");
+    if ((ThermocoupleError & THERMOCOUPLE_ERROR_OC)  == THERMOCOUPLE_ERROR_OC)  Serial.print("(open circuit)");
     Serial.println();
 
     ACState = FAULT;
     Faulted = true;
-    CompressorOff();
+    COMPRESSOR_OFF;
     // fixme - to do - record fault time
   }
 #if _DEBUG == 1
@@ -145,8 +163,9 @@ void loop
   {
     Serial.println("No response from thermocouple controller");
     ACState = OFF;
-    CompressorOff();
-    // fixme - to do - reset micro
+    COMPRESSOR_OFF;
+
+    // wait for reset
     while (1);
   }
 
@@ -170,6 +189,9 @@ void loop
       else
       {
         // fixme - to do
+
+        // wait for reset
+        while (1);
       }
       break;
 
@@ -185,7 +207,7 @@ void loop
       {
         Serial.println("Freeze protection");
         ACState = FREEZEPROTECTION;
-        CompressorOff();
+        COMPRESSOR_OFF;
       }
       // cycle compressor as needed, go back to ready if switch turned off
       else
@@ -193,6 +215,11 @@ void loop
         // calculate the current level of cooling (difference between ambient temp and evap temp)
         double Cooling = 0;
         if (AmbientTemperature > EvapTemperature) Cooling = AmbientTemperature - EvapTemperature;
+
+#if _DEBUG == 1
+        Serial.print("Cooling = ");
+        Serial.println(Cooling);
+#endif // _DEBUG == 1
 
         // fixme - to do
       }
@@ -207,4 +234,6 @@ void loop
       }
       break;
   }
+
+  wdt_reset();
 }
