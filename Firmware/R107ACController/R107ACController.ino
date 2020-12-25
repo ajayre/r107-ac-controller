@@ -14,14 +14,16 @@
 
 // minimum evap temperature in celcius
 // below this the freeze protection will start
-#define MINIMUM_TEMPERATURE 4.0F
+#define MINIMUM_TEMPERATURE 2.0F
 // the number of degrees in celcius the evap temp has to rise before
 // exiting freeze protection
-#define FREEZEPROTECTION_HYSTERESIS 1.0F
+#define FREEZEPROTECTION_HYSTERESIS 2.0F
 
 // the number of degrees in celcius the eval temp has to rise before
 // turning compressor back on after reaching target
-#define TEMP_HYSTERESIS 1.0F
+// larger value = worse performance of system
+// smaller value = more cycling of compressor on/off when at target
+#define TEMP_HYSTERESIS 2.0F
 
 // thermocouple chip select (uses hardware SPI)
 #define CS_THERMOCOUPLE 8 // D8
@@ -107,18 +109,19 @@ static double GetSimulatedTemperature
 
   SimulationTimestamp = millis();
 
-  if (SimulatedTemp < 0) SimulatedTemp = AmbientTemperature;
+  // set starting temp for simulation
+  if (SimulatedTemp < 0) SimulatedTemp = AmbientTemperature / 4;
 
-  // if compressor is on then decrease temp
+  // if compressor is on then decrease temp 6 deg C per min
   if (IS_COMPRESSOR_ON)
   {
-    SimulatedTemp -= 0.3;
+    SimulatedTemp -= 0.1;
     if (SimulatedTemp < 0) SimulatedTemp = 0;
   }
-  // if compressor is off then increase temp
+  // if compressor is off then increase temp 6 deg C per min
   else
   {
-    SimulatedTemp += 0.3;
+    SimulatedTemp += 0.1;
     if (SimulatedTemp > AmbientTemperature) SimulatedTemp = AmbientTemperature;
   }
 
@@ -147,7 +150,7 @@ static double GetTargetEvapTemperature
     Serial.println(" (fresh air)");
 
   // fixme - to do
-  return MINIMUM_TEMPERATURE + 1;
+  return MINIMUM_TEMPERATURE;
 }
 
 // the setup function runs once when you press reset or power the board
@@ -216,6 +219,9 @@ void loop
   void
   )
 {
+  // feed watchdog
+  wdt_reset();
+
   // get temperature of cabin
   double AmbientTemperature = Thermocouple.readInternal();
 
@@ -263,10 +269,35 @@ void loop
   // execute state machine
   switch (ACState)
   {
+    case FREEZEPROTECTION:
+      // if switch turned off then stop running
+      if (!GET_CONTROL_SWITCH)
+      {
+        COMPRESSOR_OFF;
+        BLOWER_OFF;
+        Serial.println("Ready");
+        ACState = READY;
+        break;
+      }
+
+      if (EvapTemperature >= (MINIMUM_TEMPERATURE + FREEZEPROTECTION_HYSTERESIS))
+      {
+        Serial.println("Ready");
+        ACState = READY;
+      }
+      break;
+
     // do nothing in these states
-    default:
     case OFF:
     case INIT:
+      break;
+
+    default:
+      Serial.print("Unknown state ");
+      Serial.println(ACState);
+      Serial.println(FREEZEPROTECTION);
+      // wait for reset
+      while (1);
       break;
 
     case READY:
@@ -276,6 +307,10 @@ void loop
         ACState = RUNNING;
         Serial.println("Running");
         BLOWER_ON;
+      }
+      else
+      {
+        BLOWER_OFF;
       }
       break;
 
@@ -310,6 +345,7 @@ void loop
 
       // get the target temperature in degrees C
       double TargetEvapTemperature = GetTargetEvapTemperature(TempSetting, AmbientTemperature, EvapTemperature);
+      if (TargetEvapTemperature < MINIMUM_TEMPERATURE) TargetEvapTemperature = MINIMUM_TEMPERATURE;
       Serial.print("Target evap temp = ");
       Serial.println(TargetEvapTemperature);
 
@@ -325,27 +361,6 @@ void loop
       else if (EvapTemperature > (TargetEvapTemperature + TEMP_HYSTERESIS))
       {
         COMPRESSOR_ON;
-      }
-      break;
-
-    // wait for evap temp to rise again
-    case FREEZEPROTECTION:
-      // if switch turned off then stop running
-      if (!GET_CONTROL_SWITCH)
-      {
-        COMPRESSOR_OFF;
-        BLOWER_OFF;
-        Serial.println("Ready");
-        ACState = READY;
-        break;
-      }
-
-      if (EvapTemperature >= (MINIMUM_TEMPERATURE + FREEZEPROTECTION_HYSTERESIS))
-      {
-        COMPRESSOR_OFF;
-        BLOWER_OFF;
-        Serial.println("Ready");
-        ACState = READY;
       }
       break;
   }
