@@ -10,41 +10,26 @@
 
 // minimum evap temperature in celcius
 // below this the freeze protection will start
-#define MINIMUM_TEMPERATURE 3.0F
-
+#define MINIMUM_TEMPERATURE 5.0F
 // the number of degrees in celcius the evap temp has to rise before
 // exiting freeze protection
 #define FREEZEPROTECTION_HYSTERESIS 1.0F
 
 // thermocouple chip select (uses hardware SPI)
 #define CS_THERMOCOUPLE 8 // D8
-
 // pin to control the blower motor
-#define BLOWER_MOTOR 9 // D9
-
+#define BLOWER_MOTOR 9    // D9
 // pin to control the compressor
-#define COMPRESSOR 10 // D10
+#define COMPRESSOR 10     // D10
+// pin for on/off switch
+#define CONTROL_SWITCH 7  // D7
+// pin for temperature control (analog)
+#define TEMP_SETTING A0
 
 // thermocouple errors
 #define THERMOCOUPLE_ERROR_SCV 0x04 // short circuit to vcc
 #define THERMOCOUPLE_ERROR_SCG 0x02 // short circuit to ground
 #define THERMOCOUPLE_ERROR_OC  0x01 // open connection
-
-// ac state machine states
-typedef enum _acstates
-{
-  OFF,
-  INIT,
-  READY,
-  RUNNING,
-  FREEZEPROTECTION,
-  FAULT
-} ACSTATE;
-
-// access to thermocouple
-static Adafruit_MAX31855 Thermocouple(CS_THERMOCOUPLE);
-// current ac state
-static ACSTATE ACState = OFF;
 
 // blower control macros (connect to NO on relay)
 #if _DEBUG == 1
@@ -63,6 +48,58 @@ static ACSTATE ACState = OFF;
 #define COMPRESSOR_OFF digitalWrite(COMPRESSOR, LOW)
 #define COMPRESSOR_ON  digitalWrite(COMPRESSOR, HIGH)
 #endif // _DEBUG == 1
+
+// control switch macro
+// returns 0 for off, 1 for on
+#define GET_CONTROL_SWITCH (!(digitalRead(CONTROL_SWITCH) & 0x01))
+
+// temp setting macro
+// returns 0 = min, 1023 = max
+#define RAW_TEMP_SETTING analogRead(TEMP_SETTING)
+// raw temp setting where switch moves from fresh air to inside air
+#define RAW_INSIDE_AIR_THRESHOLD 800
+// scaled temp setting threshold
+#define INSIDE_AIR_THRESHOLD (RAW_INSIDE_AIR_THRESHOLD / 1023.0F * 100.0F)
+
+// ac state machine states
+typedef enum _acstates
+{
+  OFF,
+  INIT,
+  READY,
+  RUNNING,
+  FREEZEPROTECTION,
+  FAULT
+} ACSTATE;
+
+// access to thermocouple
+static Adafruit_MAX31855 Thermocouple(CS_THERMOCOUPLE);
+// current ac state
+static ACSTATE ACState = OFF;
+
+// calculates the target evap temperature based on the current setting
+// and measurements
+// note - if TempSetting is greater than INSIDE_AIR_THRESHOLD then the
+// switch is in the 'inside' range
+// returns the target evap temperature in degrees C
+// note - return value must be at least MINIMUM_TEMPERATURE
+static double GetTargetEvapTemperature
+(
+  double TempSetting,                           // user's temp setting 0 (min) -> 100 (max)
+  double AmbientTemperature,                    // in degrees C
+  double EvapTemperature                        // in degrees C
+  )
+{
+  Serial.print("Temp setting = ");
+  Serial.print(TempSetting);
+  if (TempSetting > INSIDE_AIR_THRESHOLD)
+    Serial.println(" (inside)");
+  else
+    Serial.println(" (fresh air)");
+
+  // fixme - to do
+  return MINIMUM_TEMPERATURE;
+}
 
 // the setup function runs once when you press reset or power the board
 void setup
@@ -85,6 +122,9 @@ void setup
   pinMode(COMPRESSOR, OUTPUT);
   COMPRESSOR_OFF;
 
+  // configure control switch
+  pinMode(CONTROL_SWITCH, INPUT_PULLUP);
+  
   // start serial output
   Serial.begin(57600);
   while (!Serial) delay(1);
@@ -196,13 +236,23 @@ void loop
       break;
 
     case READY:
-      // fixme - if switch turned on then start running
-      // fixme - remove
-      Serial.println("Running");
-      ACState = RUNNING;
+      // if switch turned on then ac now running
+      if (GET_CONTROL_SWITCH)
+      {
+        ACState = RUNNING;
+        Serial.println("Running");
+      }
       break;
 
     case RUNNING:
+      // if switch turned off then stop running
+      if (!GET_CONTROL_SWITCH)
+      {
+        Serial.println("Ready");
+        ACState = READY;
+        break;
+      }
+
       if (EvapTemperature <= MINIMUM_TEMPERATURE)
       {
         Serial.println("Freeze protection");
@@ -215,6 +265,17 @@ void loop
         // calculate the current level of cooling (difference between ambient temp and evap temp)
         double Cooling = 0;
         if (AmbientTemperature > EvapTemperature) Cooling = AmbientTemperature - EvapTemperature;
+
+        // get user's temp setting and scale to 0 -> 100
+        double TempSetting = RAW_TEMP_SETTING;
+        TempSetting = TempSetting / 1023 * 100;
+        if (TempSetting < 0) TempSetting = 0;
+        if (TempSetting > 100) TempSetting = 100;
+
+        // get the target temperature in degrees C
+        double TargetEvapTemp = GetTargetEvapTemperature(TempSetting, AmbientTemperature, EvapTemperature);
+        Serial.print("Target evap temp = ");
+        Serial.println(TargetEvapTemp);
 
 #if _DEBUG == 1
         Serial.print("Cooling = ");
