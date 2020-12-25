@@ -68,8 +68,7 @@ typedef enum _acstates
   INIT,
   READY,
   RUNNING,
-  FREEZEPROTECTION,
-  FAULT
+  FREEZEPROTECTION
 } ACSTATE;
 
 // access to thermocouple
@@ -107,8 +106,6 @@ void setup
   void
   )
 {
-  // fixme - to do - enable brownout detection
-
   // enable watchdog timers with eight second timeout
   // fixme - to do - this does not work with the 'old' bootloader, it will continually reset after the first
   // watchdog reset. need to upgrade to the new bootloader
@@ -173,7 +170,6 @@ void loop
   double AmbientTemperature = Thermocouple.readInternal();
 
   // get current evap temperature and check for fault
-  bool Faulted = false;
   double EvapTemperature = Thermocouple.readCelsius();
   if (isnan(EvapTemperature))
   {
@@ -184,10 +180,10 @@ void loop
     if ((ThermocoupleError & THERMOCOUPLE_ERROR_OC)  == THERMOCOUPLE_ERROR_OC)  Serial.print("(open circuit)");
     Serial.println();
 
-    ACState = FAULT;
-    Faulted = true;
     COMPRESSOR_OFF;
-    // fixme - to do - record fault time
+
+    // wait for reset
+    while (1);
   }
 #if _DEBUG == 1
   else
@@ -199,7 +195,7 @@ void loop
 #endif // _DEBUG == 1
 
   // check if SPI is non-functional
-  if ((AmbientTemperature == 0) && (EvapTemperature == 0) && !Faulted)
+  if ((AmbientTemperature == 0) && (EvapTemperature == 0))
   {
     Serial.println("No response from thermocouple controller");
     ACState = OFF;
@@ -216,23 +212,6 @@ void loop
     default:
     case OFF:
     case INIT:
-      break;
-
-    case FAULT:
-      // if fault has cleared then go back to being ready
-      if (!Faulted)
-      {
-        Serial.println("Ready");
-        ACState = READY;
-      }
-      // if too much time spent faulted then reset device
-      else
-      {
-        // fixme - to do
-
-        // wait for reset
-        while (1);
-      }
       break;
 
     case READY:
