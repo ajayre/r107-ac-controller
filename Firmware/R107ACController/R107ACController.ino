@@ -10,7 +10,7 @@
 
 // minimum evap temperature in celcius
 // below this the freeze protection will start
-#define MINIMUM_TEMPERATURE 5.0F
+#define MINIMUM_TEMPERATURE 4.0F
 // the number of degrees in celcius the evap temp has to rise before
 // exiting freeze protection
 #define FREEZEPROTECTION_HYSTERESIS 1.0F
@@ -98,7 +98,7 @@ static double GetTargetEvapTemperature
     Serial.println(" (fresh air)");
 
   // fixme - to do
-  return MINIMUM_TEMPERATURE;
+  return MINIMUM_TEMPERATURE + 1;
 }
 
 // the setup function runs once when you press reset or power the board
@@ -114,6 +114,18 @@ void setup
   // watchdog reset. need to upgrade to the new bootloader
   //wdt_enable(WDTO_8S);
 
+  // start serial output
+  Serial.begin(57600);
+  while (!Serial) delay(1);
+  Serial.flush();
+
+  // print banner
+  Serial.println("R107 C107 AC Controller (C) Andy Ayre 2020");
+  Serial.println("andy@britishideas.com");
+  Serial.print("Version ");
+  Serial.println(VERSION);
+  Serial.println();
+
   // configure blower motor
   pinMode(BLOWER_MOTOR, OUTPUT);
   BLOWER_OFF;
@@ -125,19 +137,7 @@ void setup
   // configure control switch
   pinMode(CONTROL_SWITCH, INPUT_PULLUP);
   
-  // start serial output
-  Serial.begin(57600);
-  while (!Serial) delay(1);
-  Serial.flush();
-
   wdt_reset();
-
-  // print banner
-  Serial.println("R107 C107 AC Controller (C) Andy Ayre 2020");
-  Serial.println("andy@britishideas.com");
-  Serial.print("Version ");
-  Serial.println(VERSION);
-  Serial.println();
 
   Serial.println("Init");
   ACState = INIT;
@@ -241,6 +241,7 @@ void loop
       {
         ACState = RUNNING;
         Serial.println("Running");
+        BLOWER_ON;
       }
       break;
 
@@ -248,6 +249,8 @@ void loop
       // if switch turned off then stop running
       if (!GET_CONTROL_SWITCH)
       {
+        COMPRESSOR_OFF;
+        BLOWER_OFF;
         Serial.println("Ready");
         ACState = READY;
         break;
@@ -255,41 +258,58 @@ void loop
 
       if (EvapTemperature <= MINIMUM_TEMPERATURE)
       {
+        COMPRESSOR_OFF;
         Serial.println("Freeze protection");
         ACState = FREEZEPROTECTION;
-        COMPRESSOR_OFF;
+        break;
       }
-      // cycle compressor as needed, go back to ready if switch turned off
-      else
-      {
-        // calculate the current level of cooling (difference between ambient temp and evap temp)
-        double Cooling = 0;
-        if (AmbientTemperature > EvapTemperature) Cooling = AmbientTemperature - EvapTemperature;
 
-        // get user's temp setting and scale to 0 -> 100
-        double TempSetting = RAW_TEMP_SETTING;
-        TempSetting = TempSetting / 1023 * 100;
-        if (TempSetting < 0) TempSetting = 0;
-        if (TempSetting > 100) TempSetting = 100;
+      // calculate the current level of cooling (difference between ambient temp and evap temp)
+      double Cooling = 0;
+      if (AmbientTemperature > EvapTemperature) Cooling = AmbientTemperature - EvapTemperature;
 
-        // get the target temperature in degrees C
-        double TargetEvapTemp = GetTargetEvapTemperature(TempSetting, AmbientTemperature, EvapTemperature);
-        Serial.print("Target evap temp = ");
-        Serial.println(TargetEvapTemp);
+      // get user's temp setting and scale to 0 -> 100
+      double TempSetting = RAW_TEMP_SETTING;
+      TempSetting = TempSetting / 1023 * 100;
+      if (TempSetting < 0) TempSetting = 0;
+      if (TempSetting > 100) TempSetting = 100;
+
+      // get the target temperature in degrees C
+      double TargetEvapTemperature = GetTargetEvapTemperature(TempSetting, AmbientTemperature, EvapTemperature);
+      Serial.print("Target evap temp = ");
+      Serial.println(TargetEvapTemperature);
 
 #if _DEBUG == 1
-        Serial.print("Cooling = ");
-        Serial.println(Cooling);
+      Serial.print("Cooling = ");
+      Serial.println(Cooling);
 #endif // _DEBUG == 1
 
-        // fixme - to do
+      if (EvapTemperature <= TargetEvapTemperature)
+      {
+        COMPRESSOR_OFF;
+      }
+      else if (EvapTemperature > TargetEvapTemperature)
+      {
+        COMPRESSOR_ON;
       }
       break;
 
     // wait for evap temp to rise again
     case FREEZEPROTECTION:
+      // if switch turned off then stop running
+      if (!GET_CONTROL_SWITCH)
+      {
+        COMPRESSOR_OFF;
+        BLOWER_OFF;
+        Serial.println("Ready");
+        ACState = READY;
+        break;
+      }
+
       if (EvapTemperature >= (MINIMUM_TEMPERATURE + FREEZEPROTECTION_HYSTERESIS))
       {
+        COMPRESSOR_OFF;
+        BLOWER_OFF;
         Serial.println("Ready");
         ACState = READY;
       }
