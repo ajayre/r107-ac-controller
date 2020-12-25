@@ -1,6 +1,7 @@
 // R107/C107 AC Controller (manual climate control)
 // (C) Andy Ayre, 2020, all rights reserved
 // https://github.com/ajayre/r107-ac-controller
+// Outputs to serial port at 57,600 baud
 
 #include "src/Adafruit-MAX31855/Adafruit_MAX31855.h"
 #include <avr/wdt.h>
@@ -8,12 +9,19 @@
 // the version of this firmware
 #define VERSION "1.00"
 
+// define to 1 to simulate ac instead of reading thermocouple
+#define SIMULATE_AC 1
+
 // minimum evap temperature in celcius
 // below this the freeze protection will start
 #define MINIMUM_TEMPERATURE 4.0F
 // the number of degrees in celcius the evap temp has to rise before
 // exiting freeze protection
 #define FREEZEPROTECTION_HYSTERESIS 1.0F
+
+// the number of degrees in celcius the eval temp has to rise before
+// turning compressor back on after reaching target
+#define TEMP_HYSTERESIS 1.0F
 
 // thermocouple chip select (uses hardware SPI)
 #define CS_THERMOCOUPLE 8 // D8
@@ -48,6 +56,7 @@
 #define COMPRESSOR_OFF digitalWrite(COMPRESSOR, LOW)
 #define COMPRESSOR_ON  digitalWrite(COMPRESSOR, HIGH)
 #endif // _DEBUG == 1
+#define IS_COMPRESSOR_ON digitalRead(COMPRESSOR)
 
 // control switch macro
 // returns 0 for off, 1 for on
@@ -60,6 +69,12 @@
 #define RAW_INSIDE_AIR_THRESHOLD 800
 // scaled temp setting threshold
 #define INSIDE_AIR_THRESHOLD (RAW_INSIDE_AIR_THRESHOLD / 1023.0F * 100.0F)
+
+// never use simulation for release builds
+#if _DEBUG == 0
+#undef SIMULATE_AC
+#define SIMULATE_AC 0
+#endif // _DEBUG == 0
 
 // ac state machine states
 typedef enum _acstates
@@ -75,6 +90,41 @@ typedef enum _acstates
 static Adafruit_MAX31855 Thermocouple(CS_THERMOCOUPLE);
 // current ac state
 static ACSTATE ACState = OFF;
+
+#if SIMULATE_AC == 1
+static unsigned long SimulationTimestamp = 0;
+static double SimulatedTemp = -1;
+static double GetSimulatedTemperature
+  (
+  double AmbientTemperature
+  )
+{
+  // don't do anything until one second has passed
+  if (millis() - SimulationTimestamp < 1000)
+  {
+    return;
+  }
+
+  SimulationTimestamp = millis();
+
+  if (SimulatedTemp < 0) SimulatedTemp = AmbientTemperature;
+
+  // if compressor is on then decrease temp
+  if (IS_COMPRESSOR_ON)
+  {
+    SimulatedTemp -= 0.3;
+    if (SimulatedTemp < 0) SimulatedTemp = 0;
+  }
+  // if compressor is off then increase temp
+  else
+  {
+    SimulatedTemp += 0.3;
+    if (SimulatedTemp > AmbientTemperature) SimulatedTemp = AmbientTemperature;
+  }
+
+  return SimulatedTemp;
+}
+#endif // SIMULATE_AC == 1
 
 // calculates the target evap temperature based on the current setting
 // and measurements
@@ -170,7 +220,12 @@ void loop
   double AmbientTemperature = Thermocouple.readInternal();
 
   // get current evap temperature and check for fault
-  double EvapTemperature = Thermocouple.readCelsius();
+  double EvapTemperature;
+#if SIMULATE_AC == 1
+  EvapTemperature = GetSimulatedTemperature(AmbientTemperature);
+#else
+  EvapTemperature = Thermocouple.readCelsius();
+#endif // SIMULATE_AC
   if (isnan(EvapTemperature))
   {
     Serial.print("Thermocouple fault ");
@@ -267,7 +322,7 @@ void loop
       {
         COMPRESSOR_OFF;
       }
-      else if (EvapTemperature > TargetEvapTemperature)
+      else if (EvapTemperature > (TargetEvapTemperature + TEMP_HYSTERESIS))
       {
         COMPRESSOR_ON;
       }
