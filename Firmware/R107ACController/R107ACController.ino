@@ -23,6 +23,8 @@
 // larger value = worse performance of system
 // smaller value = more cycling of compressor on/off when at target
 #define TEMP_HYSTERESIS 1.0F
+// size of temperature range controllable by user, in degrees celcius
+#define TEMP_RANGE 15.0F
 
 // pin to control the compressor
 #define COMPRESSOR      6    // D6
@@ -87,49 +89,12 @@ typedef enum _acstates
   FREEZEPROTECTION
 } ACSTATE;
 
-// defines a cooling setting
-typedef struct _cooling
-{
-  int Ambient;             // ambient temperature in degrees C
-  double MaxCooling;       // maximum possible cooling expected in degrees C
-} COOLING;
-
-// defines the max cooling possible for a range of ambient temperatures
-// this is taken from the 1977 factory service manual, section 83.1-510, figure 5
-// we use this so we don't unecessarily stress the system trying to get to
-// unrealistic evap temperatures
-static const COOLING CoolingTable[] = {
-  {20, 11.5},
-  {21, 12.0},
-  {22, 12.3},
-  {23, 12.6},
-  {24, 13.0},
-  {25, 13.5},
-  {26, 14.0},
-  {27, 14.7},
-  {28, 15.3},
-  {29, 16.0},
-  {30, 16.7},
-  {31, 17.3},
-  {32, 18.0},
-  {33, 18.8},
-  {34, 19.6},
-  {35, 20.4},
-  {36, 21.2},
-  {37, 22.0},
-  {38, 23.0},
-  {39, 23.5},
-  {40, 24.5}
-};
-
 // the max cooling for a given high ambient temperature in
 // cooling degrees C per ambient degrees C
 // based on the almost linear relationship of the last five entries in the cooling table
 #define HIGH_TEMP_COOLING_RATE ((24.5 - 20.4) / 5.0)
 // the max cooling for low temperatures in degrees C
 #define LOW_TEMP_MAX_COOLING 11.5
-// the number of entries in the cooling table
-#define COOLING_TABLE_SIZE (sizeof(CoolingTable) / sizeof(COOLING))
 
 // access to thermocouple
 static Adafruit_MAX31855 Thermocouple(CS_THERMOCOUPLE);
@@ -181,7 +146,7 @@ static double GetSimulatedTemperature
 static double GetTargetEvapTemperature
 (
   double TempSetting,                           // user's temp setting 0 (min) -> 100 (max)
-  double AmbientTemperature,                    // in degrees C
+  double AmbientTemperature,                    // in degrees C, taken from behind dashboard, NOT equal to outside temp
   double EvapTemperature                        // in degrees C
   )
 {
@@ -192,38 +157,12 @@ static double GetTargetEvapTemperature
   else
     Serial.println(" (fresh air)");
 
-  // calculate the current level of cooling (difference between ambient temp and evap temp)
-  double Cooling = 0;
-  if (AmbientTemperature > EvapTemperature) Cooling = AmbientTemperature - EvapTemperature;
+  // get controllable temperarure range
+  double MinTemp = MINIMUM_TEMPERATURE;
+  double MaxTemp = MinTemp + TEMP_RANGE;
 
-  double MaxCooling = 0;
-
-  // if less than the first entry in the cooling table then set to default max cooling
-  if ((int)AmbientTemperature < CoolingTable[0].Ambient)
-  {
-    return AmbientTemperature - LOW_TEMP_MAX_COOLING;
-  }
-  // if more than the last entry in the cooling table then use a fixed amount of cooling
-  // based on a linear relationship
-  else if ((int)AmbientTemperature > CoolingTable[COOLING_TABLE_SIZE - 1].Ambient)
-  {
-    MaxCooling = CoolingTable[COOLING_TABLE_SIZE - 1].MaxCooling + ((AmbientTemperature - CoolingTable[COOLING_TABLE_SIZE - 1].Ambient) * HIGH_TEMP_COOLING_RATE);
-  }
-  // get max cooling from the table
-  {
-    for (int c = 0; c < COOLING_TABLE_SIZE; c++)
-    {
-      if (CoolingTable[c].Ambient == (int)AmbientTemperature)
-      {
-        MaxCooling = CoolingTable[c].MaxCooling;
-        break;
-      }
-    }
-  }
-
-  // calculate the target temperature by scaling the user's temperature setting
-  // over the ambient -> ambient - maxcooling range
-  double TargetTemperature = AmbientTemperature - (MaxCooling * (TempSetting / 100.0));
+  // scale the user's temperature setting over the min -> max range
+  double TargetTemperature = MaxTemp - ((MaxTemp - MinTemp) * (TempSetting / 100.0));
 
   return TargetTemperature;
 }
