@@ -87,7 +87,7 @@ PROTECTION<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y
         <y:ProxyAutoBoundsNode>
           <y:Realizers active="0">
             <y:GroupNode>
-              <y:Geometry height="319.37646484375" width="301.0" x="41.0" y="221.62353515625"/>
+              <y:Geometry height="319.37646484375" width="301.0" x="113.0" y="221.62353515625"/>
               <y:Fill color="#F5F5F5" transparent="false"/>
               <y:BorderStyle color="#000000" type="dashed" width="1.0"/>
               <y:NodeLabel alignment="right" autoSizePolicy="node_width" backgroundColor="#EBEBEB" borderDistance="0.0" fontFamily="Dialog" fontSize="15" fontStyle="plain" hasLineColor="false" height="22.37646484375" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="t" textColor="#000000" verticalTextPosition="bottom" visible="true" width="301.0" x="0.0" xml:space="preserve" y="0.0">RUNNING</y:NodeLabel>
@@ -113,7 +113,7 @@ PROTECTION<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y
         <node id="n6::n0">
           <data key="d6">
             <y:ShapeNode>
-              <y:Geometry height="89.0" width="89.0" x="146.0" y="259.0"/>
+              <y:Geometry height="89.0" width="89.0" x="218.0" y="259.0"/>
               <y:Fill color="#FFCC00" transparent="false"/>
               <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
               <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.701171875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="73.333984375" x="7.8330078125" xml:space="preserve" y="35.1494140625">CPRSR OFF<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y:ModelParameter><y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/></y:ModelParameter></y:NodeLabel>
@@ -124,7 +124,7 @@ PROTECTION<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y
         <node id="n6::n1">
           <data key="d6">
             <y:ShapeNode>
-              <y:Geometry height="89.0" width="89.0" x="146.0" y="437.0"/>
+              <y:Geometry height="89.0" width="89.0" x="218.0" y="437.0"/>
               <y:Fill color="#FFCC00" transparent="false"/>
               <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
               <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.701171875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="67.33984375" x="10.830078125" xml:space="preserve" y="35.1494140625">CPRSR ON<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y:ModelParameter><y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/></y:ModelParameter></y:NodeLabel>
@@ -322,8 +322,8 @@ or switch off AC<y:LabelModel><y:SmartEdgeLabelModel autoRotationEnabled="false"
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
-            <y:Point x="94.0300000000002" y="481.5"/>
-            <y:Point x="94.0300000000002" y="303.5"/>
+            <y:Point x="166.0300000000002" y="481.5"/>
+            <y:Point x="166.0300000000002" y="303.5"/>
           </y:Path>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
           <y:Arrows source="none" target="standard"/>
