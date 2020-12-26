@@ -17,24 +17,23 @@
 #define MINIMUM_TEMPERATURE 2.0F
 // the number of degrees in celcius the evap temp has to rise before
 // exiting freeze protection
-#define FREEZEPROTECTION_HYSTERESIS 2.0F
-
+#define FREEZEPROTECTION_HYSTERESIS 1.0F
 // the number of degrees in celcius the eval temp has to rise before
 // turning compressor back on after reaching target
 // larger value = worse performance of system
 // smaller value = more cycling of compressor on/off when at target
-#define TEMP_HYSTERESIS 2.0F
+#define TEMP_HYSTERESIS 1.0F
 
-// thermocouple chip select (uses hardware SPI)
-#define CS_THERMOCOUPLE 8 // D8
-// pin to control the blower motor
-#define BLOWER_MOTOR 9    // D9
 // pin to control the compressor
-#define COMPRESSOR 10     // D10
+#define COMPRESSOR      6    // D6
 // pin for on/off switch
-#define CONTROL_SWITCH 7  // D7
+#define CONTROL_SWITCH  7    // D7
+// thermocouple chip select (uses hardware SPI)
+#define CS_THERMOCOUPLE 8    // D8
+// pin to control the blower motor
+#define BLOWER_MOTOR    9    // D9
 // pin for temperature control (analog)
-#define TEMP_SETTING A0
+#define TEMP_SETTING    A0
 
 // thermocouple errors
 #define THERMOCOUPLE_ERROR_SCV 0x04 // short circuit to vcc
@@ -88,6 +87,50 @@ typedef enum _acstates
   FREEZEPROTECTION
 } ACSTATE;
 
+// defines a cooling setting
+typedef struct _cooling
+{
+  int Ambient;             // ambient temperature in degrees C
+  double MaxCooling;       // maximum possible cooling expected in degrees C
+} COOLING;
+
+// defines the max cooling possible for a range of ambient temperatures
+// this is taken from the 1977 factory service manual, section 83.1-510, figure 5
+// we use this so we don't unecessarily stress the system trying to get to
+// unrealistic evap temperatures
+static const COOLING CoolingTable[] = {
+  {20, 11.5},
+  {21, 12.0},
+  {22, 12.3},
+  {23, 12.6},
+  {24, 13.0},
+  {25, 13.5},
+  {26, 14.0},
+  {27, 14.7},
+  {28, 15.3},
+  {29, 16.0},
+  {30, 16.7},
+  {31, 17.3},
+  {32, 18.0},
+  {33, 18.8},
+  {34, 19.6},
+  {35, 20.4},
+  {36, 21.2},
+  {37, 22.0},
+  {38, 23.0},
+  {39, 23.5},
+  {40, 24.5}
+};
+
+// the max cooling for a given high ambient temperature in
+// cooling degrees C per ambient degrees C
+// based on the almost linear relationship of the last five entries in the cooling table
+#define HIGH_TEMP_COOLING_RATE ((24.5 - 20.4) / 5.0)
+// the max cooling for low temperatures in degrees C
+#define LOW_TEMP_MAX_COOLING 11.5
+// the number of entries in the cooling table
+#define COOLING_TABLE_SIZE (sizeof(CoolingTable) / sizeof(COOLING))
+
 // access to thermocouple
 static Adafruit_MAX31855 Thermocouple(CS_THERMOCOUPLE);
 // current ac state
@@ -110,7 +153,7 @@ static double GetSimulatedTemperature
   SimulationTimestamp = millis();
 
   // set starting temp for simulation
-  if (SimulatedTemp < 0) SimulatedTemp = AmbientTemperature / 4;
+  if (SimulatedTemp < 0) SimulatedTemp = AmbientTemperature;
 
   // if compressor is on then decrease temp 6 deg C per min
   if (IS_COMPRESSOR_ON)
@@ -149,8 +192,40 @@ static double GetTargetEvapTemperature
   else
     Serial.println(" (fresh air)");
 
-  // fixme - to do
-  return MINIMUM_TEMPERATURE;
+  // calculate the current level of cooling (difference between ambient temp and evap temp)
+  double Cooling = 0;
+  if (AmbientTemperature > EvapTemperature) Cooling = AmbientTemperature - EvapTemperature;
+
+  double MaxCooling = 0;
+
+  // if less than the first entry in the cooling table then set to default max cooling
+  if ((int)AmbientTemperature < CoolingTable[0].Ambient)
+  {
+    return AmbientTemperature - LOW_TEMP_MAX_COOLING;
+  }
+  // if more than the last entry in the cooling table then use a fixed amount of cooling
+  // based on a linear relationship
+  else if ((int)AmbientTemperature > CoolingTable[COOLING_TABLE_SIZE - 1].Ambient)
+  {
+    MaxCooling = CoolingTable[COOLING_TABLE_SIZE - 1].MaxCooling + ((AmbientTemperature - CoolingTable[COOLING_TABLE_SIZE - 1].Ambient) * HIGH_TEMP_COOLING_RATE);
+  }
+  // get max cooling from the table
+  {
+    for (int c = 0; c < COOLING_TABLE_SIZE; c++)
+    {
+      if (CoolingTable[c].Ambient == (int)AmbientTemperature)
+      {
+        MaxCooling = CoolingTable[c].MaxCooling;
+        break;
+      }
+    }
+  }
+
+  // calculate the target temperature by scaling the user's temperature setting
+  // over the ambient -> ambient - maxcooling range
+  double TargetTemperature = AmbientTemperature - (MaxCooling * (TempSetting / 100.0));
+
+  return TargetTemperature;
 }
 
 // the setup function runs once when you press reset or power the board
@@ -325,6 +400,7 @@ void loop
         break;
       }
 
+      // check for minimum evap temo
       if (EvapTemperature <= MINIMUM_TEMPERATURE)
       {
         COMPRESSOR_OFF;
@@ -332,10 +408,6 @@ void loop
         ACState = FREEZEPROTECTION;
         break;
       }
-
-      // calculate the current level of cooling (difference between ambient temp and evap temp)
-      double Cooling = 0;
-      if (AmbientTemperature > EvapTemperature) Cooling = AmbientTemperature - EvapTemperature;
 
       // get user's temp setting and scale to 0 -> 100
       double TempSetting = RAW_TEMP_SETTING;
@@ -346,14 +418,10 @@ void loop
       // get the target temperature in degrees C
       double TargetEvapTemperature = GetTargetEvapTemperature(TempSetting, AmbientTemperature, EvapTemperature);
       if (TargetEvapTemperature < MINIMUM_TEMPERATURE) TargetEvapTemperature = MINIMUM_TEMPERATURE;
-      Serial.print("Target evap temp = ");
+      Serial.print("Target temp = ");
       Serial.println(TargetEvapTemperature);
 
-#if _DEBUG == 1
-      Serial.print("Cooling = ");
-      Serial.println(Cooling);
-#endif // _DEBUG == 1
-
+      // turn compressor on or off as needed
       if (EvapTemperature <= TargetEvapTemperature)
       {
         COMPRESSOR_OFF;
