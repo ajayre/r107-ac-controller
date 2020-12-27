@@ -10,7 +10,7 @@
 #define VERSION "1.00"
 
 // define to 1 to simulate ac instead of reading thermocouple
-#define SIMULATE_AC 1
+#define SIMULATE_AC 0
 
 // minimum evap temperature in celcius
 // below this the freeze protection will start
