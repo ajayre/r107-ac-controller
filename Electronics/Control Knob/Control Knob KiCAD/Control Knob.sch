@@ -47,7 +47,7 @@ F 3 "~" H 5600 4050 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Text Notes 5350 3750 0    50   ~ 0
-1- Green\n2 - Orange\n3 - Yellow\n4 - Red\n0.250 female spade connectors\nYellow-Orange must be low resistance when pot off, high resistance when pot on
+1- Green\n2 - Orange\n3 - Yellow\n4 - Red\n\n0.250 female spade connectors\n\nYellow-Orange must be low resistance when pot fully anti-clockwise\nand high resistance when pot fully clockwise
 Wire Wire Line
 	4900 3650 4900 4250
 Wire Wire Line
