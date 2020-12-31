@@ -1370,7 +1370,7 @@ U 1 1 5FF1919A
 P 7950 4250
 F 0 "L1" V 7900 4250 50  0000 C CNN
 F 1 "33uH" V 8049 4250 50  0000 C CNN
-F 2 "Britishideas:Chilisin_Power_Inductor_AWVS" H 7950 4250 50  0001 C CNN
+F 2 "Britishideas:Chilisin_Power_Inductor_AWVS_808040" H 7950 4250 50  0001 C CNN
 F 3 "~" H 7950 4250 50  0001 C CNN
 	1    7950 4250
 	0    -1   -1   0   
