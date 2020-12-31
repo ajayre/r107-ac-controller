@@ -1425,9 +1425,9 @@ Wire Wire Line
 	1000 5650 1200 5650
 Wire Wire Line
 	1000 5750 1200 5750
-Text Label 1200 5650 0    50   ~ 0
+Text Label 1200 5850 0    50   ~ 0
 BLOWER_CTRL
-Text Label 1200 5750 0    50   ~ 0
+Text Label 1200 5650 0    50   ~ 0
 COMPRESSOR_CTRL
 $Comp
 L Connector_Generic:Conn_01x02 JP3
@@ -1485,9 +1485,9 @@ Wire Wire Line
 	1000 5850 1200 5850
 Wire Wire Line
 	1000 5950 1200 5950
-Text Label 1200 5850 0    50   ~ 0
-TEMP_SETTING
 Text Label 1200 5950 0    50   ~ 0
+TEMP_SETTING
+Text Label 1200 5750 0    50   ~ 0
 ON_OFF
 $Comp
 L power:+5V #PWR03
