@@ -2,7 +2,7 @@
 <export version="D">
   <design>
     <source>C:\Users\andy\OneDrive\Documents\R107-AC-Controller\trunk\Electronics\PCB\R107 AC Controller\R107 AC Controller.sch</source>
-    <date>31/12/2020 14:29:16</date>
+    <date>02/01/2021 23:05:34</date>
     <tool>Eeschema (5.1.6)-1</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
@@ -164,7 +164,7 @@
     </comp>
     <comp ref="J5">
       <value>THERMOCOUPLE</value>
-      <footprint>TerminalBlock_TE-Connectivity:TerminalBlock_TE_282834-2_1x02_P2.54mm_Horizontal</footprint>
+      <footprint>Britishideas:Keystone_SturdiMount_TabConnector_1x2</footprint>
       <datasheet>~</datasheet>
       <libsource lib="Connector" part="Screw_Terminal_01x02" description="Generic screw terminal, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
