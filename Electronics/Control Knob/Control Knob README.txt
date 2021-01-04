@@ -42,6 +42,10 @@ See Control Knob Wiring.pdf
 
 Print out one copy of the four pin connector using TPU (flexible plastic) with 20% infill.
 
+Use female quick disconnect 0.250" connectors for 22 gauge (red). Remove the red plastic before crimping so they can be pulled into the connector housing.
+
+Once all four connectors are in the connector housing use a cable tie to bundle them together to stop them slipping out of the connector housing.
+
 
 Testing
 -------
