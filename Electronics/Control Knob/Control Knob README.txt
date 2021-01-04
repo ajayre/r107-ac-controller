@@ -6,6 +6,7 @@ Hardware
 
 The pot is 10KOhm with integrated switch, 1/4" shaft and 300 degrees of rotation.
 
+
 Installation
 ------------
 
@@ -33,10 +34,14 @@ To install into the existing AC knob:
 
 10. Install a new longer screw into vacuum valve so it goes into the 3D printed bracket.
 
+
 Wiring
 ------
 
 See Control Knob Wiring.pdf
+
+Print out one copy of the four pin connector using TPU (flexible plastic) with 20% infill.
+
 
 Testing
 -------
