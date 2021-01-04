@@ -6,7 +6,7 @@ The problem with the AC switch is the delicate capillary tube that senses the ev
 
 The aim of this project is to replace the Ranco electro-mechanical part of the AC switch with a modern electronic equivalent.
 
-This work is copyright (C) Andrew Ayre 2020 and no reproduction or unauthorized use is permitted.
+This work is copyright (C) Andrew Ayre 2021 and no commercial use is permitted.
 
 USE AT YOUR OWN RISK. NO WARRANTY, EXPRESS OR IMPLIED.
 
