@@ -20,5 +20,6 @@ The prototype uses the following hardware:
 
 ## Development Tools
 
+* Arduino IDE - https://www.arduino.cc/en/software
 * Install Microsoft Visual Studio Community Edition 2017 - https://visualstudio.microsoft.com/vs/older-downloads/
 * Install Visual Micro - https://marketplace.visualstudio.com/items?itemName=VisualMicro.ArduinoIDEforVisualStudio
