@@ -11,8 +11,10 @@ A K-type thermocouple is needed. This consists of red and yellow wires inside a 
 
 4. Cover in 2.5mm diameter heat shrink tubing, making sure to cover the end of the braiding so it doesn't fray and also a bit past the tip so the bare wires cannot touch the evaporator.
 
-5. Straighten the wire out as much as possible.
+5. Attach female quick disconnect connectors 0.250", 22 gauge (red) to the ends of each wire.
 
-6. Very carefully feed into the evaporator.
+6. Straighten the wire out as much as possible.
+
+7. Very carefully feed into the evaporator.
 
 NOTE - do this at your own risk! This is what worked for me but I am not responsible if anything gets stuck in your evaporator. If you are not completely comfortable with doing this then look to another solution for measuring the evaporator temperature!
