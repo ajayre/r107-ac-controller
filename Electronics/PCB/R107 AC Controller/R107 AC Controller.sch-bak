@@ -647,7 +647,7 @@ U 1 1 5FF58097
 P 5450 6100
 F 0 "J5" H 5368 6317 50  0000 C CNN
 F 1 "THERMOCOUPLE" H 5368 6226 50  0000 C CNN
-F 2 "TerminalBlock_TE-Connectivity:TerminalBlock_TE_282834-2_1x02_P2.54mm_Horizontal" H 5450 6100 50  0001 C CNN
+F 2 "Britishideas:Keystone_SturdiMount_TabConnector_1x2" H 5450 6100 50  0001 C CNN
 F 3 "~" H 5450 6100 50  0001 C CNN
 	1    5450 6100
 	-1   0    0    -1  
