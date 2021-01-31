@@ -39,11 +39,11 @@ Remove the RUN jumper. Replace the jumper after programming.
 
 The LED will turn on when firmware execution starts. Note that there is a delay of around two or three seconds while the bootloader runs and the LED will be off during this time.
 
-LED off = power supply problem
-LED on solid = in the 'ready' state, waiting for AC to be turned on. Compressor and blower are off
-LED continually flashing = error
-LED flashing twice = in the 'running' state, blower is on and compressor cycles as needed
-LED flashing three times = in the 'freeze protection' state, blower in on and compressor is off
+* LED off = power supply problem
+* LED on solid = in the 'ready' state, waiting for AC to be turned on. Compressor and blower are off
+* LED continually flashing = error
+* LED flashing twice = in the 'running' state, blower is on and compressor cycles as needed
+* LED flashing three times = in the 'freeze protection' state, blower in on and compressor is off
 
 ### RUN Jumper
 
