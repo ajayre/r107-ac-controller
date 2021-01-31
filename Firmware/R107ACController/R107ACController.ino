@@ -12,6 +12,10 @@
 // define to 1 to simulate ac instead of reading thermocouple
 #define SIMULATE_AC 0
 
+// logic
+#define FALSE (0)
+#define TRUE (!FALSE)
+
 // minimum evap temperature in celcius
 // below this the freeze protection will start
 #define MINIMUM_TEMPERATURE 2.0F
@@ -36,11 +40,18 @@
 #define BLOWER_MOTOR    9    // D9
 // pin for temperature control (analog)
 #define TEMP_SETTING    A0
+// pin for status LED
+#define STATUS_LED       A3
 
 // thermocouple errors
 #define THERMOCOUPLE_ERROR_SCV 0x04 // short circuit to vcc
 #define THERMOCOUPLE_ERROR_SCG 0x02 // short circuit to ground
 #define THERMOCOUPLE_ERROR_OC  0x01 // open connection
+
+// status LED control
+#define STATUS_LED_ON  digitalWrite(STATUS_LED, LOW)
+#define STATUS_LED_OFF digitalWrite(STATUS_LED, HIGH);
+#define IS_STATUS_LED_ON (digitalRead(STATUS_LED) == 1 ? FALSE : TRUE)
 
 // blower control macros (connect to NO on relay)
 #if _DEBUG == 1
@@ -73,6 +84,16 @@
 // scaled temp setting threshold
 #define INSIDE_AIR_THRESHOLD (RAW_INSIDE_AIR_THRESHOLD / 1023.0F * 100.0F)
 
+// minimum on or off time in milliseconds
+#define LED_PERIOD 200
+// time between patterns as a multiple of LED_PERIOD
+#define LED_PATTERN_OFF_TIME 4
+
+// pattern to show on LED in the various state machine states
+#define LED_PATTERN_READY            2
+#define LED_PATTERN_RUNNING          3
+#define LED_PATTERN_FREEZEPROTECTION 4
+
 // never use simulation for release builds
 #if _DEBUG == 0
 #undef SIMULATE_AC
@@ -89,17 +110,33 @@ typedef enum _acstates
   FREEZEPROTECTION
 } ACSTATE;
 
-// the max cooling for a given high ambient temperature in
-// cooling degrees C per ambient degrees C
-// based on the almost linear relationship of the last five entries in the cooling table
-#define HIGH_TEMP_COOLING_RATE ((24.5 - 20.4) / 5.0)
-// the max cooling for low temperatures in degrees C
-#define LOW_TEMP_MAX_COOLING 11.5
+// modes of operation for the LED
+typedef enum _ledmodes
+{
+  LED_Mode_Off,
+  LED_Mode_On,
+  LED_Mode_Error,
+  LED_Mode_Pattern
+} LEDMODES;
+
+// the states used to flash patterns on the LED
+typedef enum _ledpatternstates
+{
+  LED_Pattern_Flashing,
+  LED_Pattern_Paused
+} LEDPATTERNSTATES;
 
 // access to thermocouple
 static Adafruit_MAX31855 Thermocouple(CS_THERMOCOUPLE);
 // current ac state
 static ACSTATE ACState = OFF;
+
+// LED handling
+static LEDMODES LEDMode;
+static unsigned long LEDNextTime;
+static int LEDPatternCounter;
+static LEDPATTERNSTATES LEDPatternState;
+static int LEDPatternNumber;
 
 #if SIMULATE_AC == 1
 static unsigned long SimulationTimestamp = 0;
@@ -136,6 +173,122 @@ static double GetSimulatedTemperature
   return SimulatedTemp;
 }
 #endif // SIMULATE_AC == 1
+
+// Starts flashing a pattern on the LED
+static void EnableLEDPattern
+  (
+  int PatternNumber                  // number of flashes before pausing
+  )
+{
+  LEDMode = LED_Mode_Pattern;
+  LEDNextTime = GetTime() + LED_PERIOD;
+  LEDPatternCounter = 0;
+  LEDPatternState = LED_Pattern_Flashing;
+  LEDPatternNumber = PatternNumber;
+  STATUS_LED_OFF;
+}
+
+// Gets the current time in milliseconds since last power on
+static unsigned long GetTime
+  (
+  void
+  )
+{
+  return millis();
+}
+
+// Checks if a timestamp is in the past, handles 32-bit timer overflow
+static uint8_t IsTimeExpired
+  (
+  unsigned long timestamp            // timestamp to check
+  )
+{
+  unsigned long time_now;
+
+  time_now = millis();
+  if (time_now >= timestamp)
+  {
+    if ((time_now - timestamp) < 0x80000000)
+      return 1;
+    else
+      return 0;
+  }
+  else
+  {
+    if ((timestamp - time_now) >= 0x80000000)
+      return 1;
+    else
+      return 0;
+  }
+}
+
+// Call frequently to update the LED
+static void LEDHandler
+  (
+  void
+  )
+{
+  if (IsTimeExpired(LEDNextTime))
+  {
+    switch (LEDMode)
+    {
+      // turn LED off
+    case LED_Mode_Off:
+      STATUS_LED_OFF;
+      break;
+
+      // turn LED on
+    case LED_Mode_On:
+      STATUS_LED_ON;
+      break;
+
+      // show the error state on the LED
+    case LED_Mode_Error:
+      if (IS_STATUS_LED_ON)
+      {
+        STATUS_LED_OFF;
+      }
+      else
+      {
+        STATUS_LED_ON;
+      }
+      break;
+
+      // show a specific pattern on the LED
+    case LED_Mode_Pattern:
+      switch (LEDPatternState)
+      {
+      case LED_Pattern_Flashing:
+        if (IS_STATUS_LED_ON)
+        {
+          STATUS_LED_OFF;
+        }
+        else
+        {
+          STATUS_LED_ON;
+          if (++LEDPatternCounter == LEDPatternNumber)
+          {
+            LEDPatternState = LED_Pattern_Paused;
+            LEDPatternCounter = 0;
+          }
+        }
+        break;
+
+      case LED_Pattern_Paused:
+        STATUS_LED_OFF;
+        if (++LEDPatternCounter == LED_PATTERN_OFF_TIME)
+        {
+          LEDPatternState = LED_Pattern_Flashing;
+          LEDPatternCounter = 0;
+        }
+        break;
+      }
+      break;
+    }
+
+    LEDNextTime = GetTime() + LED_PERIOD;
+  }
+}
 
 // calculates the target evap temperature based on the current setting
 // and measurements
@@ -178,6 +331,11 @@ void setup
   // watchdog reset. need to upgrade to the new bootloader
   //wdt_enable(WDTO_8S);
 
+  // configure status LED and turn on
+  pinMode(STATUS_LED, OUTPUT);
+  // turn LED on
+  LEDMode = LED_Mode_On;
+
   // start serial output
   Serial.begin(57600);
   while (!Serial) delay(1);
@@ -216,6 +374,7 @@ void setup
   {
     Serial.println("Failed to initalize thermocouple");
     ACState = OFF;
+    LEDMode = LED_Mode_Error;
 
     // wait for reset
     while (1);
@@ -225,6 +384,7 @@ void setup
 
   Serial.println("Ready");
   ACState = READY;
+  EnableLEDPattern(LED_PATTERN_READY);
 }
 
 // the loop function runs over and over again until power down or reset
@@ -235,6 +395,9 @@ void loop
 {
   // feed watchdog
   wdt_reset();
+
+  // update LED state
+  LEDHandler();
 
   // get temperature of cabin
   double AmbientTemperature = Thermocouple.readInternal();
@@ -275,6 +438,7 @@ void loop
     Serial.println("No response from thermocouple controller");
     ACState = OFF;
     COMPRESSOR_OFF;
+    LEDMode = LED_Mode_Error;
 
     // wait for reset
     while (1);
@@ -291,6 +455,7 @@ void loop
         BLOWER_OFF;
         Serial.println("Ready");
         ACState = READY;
+        EnableLEDPattern(LED_PATTERN_READY);
         break;
       }
 
@@ -298,6 +463,7 @@ void loop
       {
         Serial.println("Ready");
         ACState = READY;
+        EnableLEDPattern(LED_PATTERN_READY);
       }
       break;
 
@@ -309,7 +475,6 @@ void loop
     default:
       Serial.print("Unknown state ");
       Serial.println(ACState);
-      Serial.println(FREEZEPROTECTION);
       // wait for reset
       while (1);
       break;
@@ -321,6 +486,7 @@ void loop
         ACState = RUNNING;
         Serial.println("Running");
         BLOWER_ON;
+        EnableLEDPattern(LED_PATTERN_RUNNING);
       }
       else
       {
@@ -336,6 +502,7 @@ void loop
         BLOWER_OFF;
         Serial.println("Ready");
         ACState = READY;
+        EnableLEDPattern(LED_PATTERN_READY);
         break;
       }
 
@@ -345,6 +512,7 @@ void loop
         COMPRESSOR_OFF;
         Serial.println("Freeze protection");
         ACState = FREEZEPROTECTION;
+        EnableLEDPattern(LED_PATTERN_FREEZEPROTECTION);
         break;
       }
 
