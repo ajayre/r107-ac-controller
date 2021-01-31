@@ -1,60 +1,26 @@
-"Source:","C:\Users\andy\OneDrive\Documents\R107-AC-Controller\trunk\Electronics\PCB\R107 AC Controller\R107 AC Controller.sch"
-"Date:","31/01/2021 14:07:50"
-"Tool:","Eeschema (5.1.6)-1"
-"Component Count:","55"
-"Ref","Value","Footprint","Datasheet","Manufacturer","Vendor"
-"C1","4.7uF e","Capacitor_SMD:CP_Elec_4x5.8","~","",""
-"C2","100nF","Capacitor_SMD:C_0805_2012Metric","~","",""
-"C3","1uF","Capacitor_SMD:C_0805_2012Metric","~","",""
-"C4","18pF","Capacitor_SMD:C_0805_2012Metric","~","",""
-"C5","18pF","Capacitor_SMD:C_0805_2012Metric","~","",""
-"C6","1uF","Capacitor_SMD:C_0805_2012Metric","~","",""
-"C7","680uF e","Capacitor_SMD:CP_Elec_10x10.5","~","",""
-"C8","10nF","Capacitor_SMD:C_0805_2012Metric","~","",""
-"C9","100nF","Capacitor_SMD:C_0805_2012Metric","~","",""
-"C10","10uF e","Capacitor_SMD:CP_Elec_4x5.4","~","",""
-"C11","10uF e","Capacitor_SMD:CP_Elec_4x5.4","~","",""
-"C12","220uF e","Capacitor_SMD:CP_Elec_8x6.5","~","",""
-"C13","100nF","Capacitor_SMD:C_0805_2012Metric","~","",""
-"C14","4.7uF 16V e","Capacitor_SMD:CP_Elec_4x5.8","~","",""
-"C15","100nF","Capacitor_SMD:C_0805_2012Metric","~","",""
-"D1","RED","LED_SMD:LED_PLCC-2","~","",""
-"D2","MMSD4148T1G","Diode_SMD:D_SOD-123","~","",""
-"D3","MMSD4148T1G","Diode_SMD:D_SOD-123","~","",""
-"D4","B360A-13-F","Diode_SMD:D_SMA","~","",""
-"D5","MMSD4148T1G","Diode_SMD:D_SOD-123","~","",""
-"D6","MMSD4148T1G","Diode_SMD:D_SOD-123","~","",""
-"D7","MBR0520LT1G","Britishideas:SMP_DO-220AA","~","",""
-"FB1","BLM21AG471SH1D","Inductor_SMD:L_0805_2012Metric","~","",""
-"FB2","BLM21AG471SH1D","Inductor_SMD:L_0805_2012Metric","~","",""
-"J1","CAR POWER","Britishideas:Keystone_SturdiMount_TabConnector_1x2","~","",""
-"J2","CONTROL","Britishideas:Keystone_SturdiMount_TabConnector_1x2","~","",""
-"J3","ACCESSORY","Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical","~","",""
-"J4","KNOB","Britishideas:Keystone_SturdiMount_TabConnector_1x4","~","",""
-"J5","THERMOCOUPLE","Britishideas:Keystone_SturdiMount_TabConnector_1x2","~","",""
-"J6","USB_B_Mini","Connector_USB:USB_Mini-B_Wuerth_65100516121_Horizontal","~","",""
-"J7","ISP","Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical","~","",""
-"JP1","RUN","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical","~","",""
-"JP2","OPT1","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical","~","",""
-"JP3","OPT2","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical","~","",""
-"K1","G5LE-1","Relay_THT:Relay_SPDT_Omron-G5LE-1","http://www.omron.com/ecb/products/pdf/en-g5le.pdf","",""
-"K2","G5LE-1","Relay_THT:Relay_SPDT_Omron-G5LE-1","http://www.omron.com/ecb/products/pdf/en-g5le.pdf","",""
-"L1","33uH","Britishideas:Chilisin_Power_Inductor_AWVS_808040","~","",""
-"Q1","MMBT2222ALT1G","Package_TO_SOT_SMD:SOT-23","~","",""
-"Q2","MMBT2222ALT1G","Package_TO_SOT_SMD:SOT-23","~","",""
-"R1","1K","Resistor_SMD:R_0805_2012Metric","~","",""
-"R2","1K","Resistor_SMD:R_0805_2012Metric","~","",""
-"R3","1K","Resistor_SMD:R_0805_2012Metric","~","",""
-"R4","1K","Resistor_SMD:R_0805_2012Metric","~","",""
-"R5","10K","Resistor_SMD:R_0805_2012Metric","~","",""
-"R6","10K","Resistor_SMD:R_0805_2012Metric","~","",""
-"R7","1K","Resistor_SMD:R_0805_2012Metric","~","",""
-"R8","1K","Resistor_SMD:R_0805_2012Metric","~","",""
-"R9","1K","Resistor_SMD:R_0805_2012Metric","~","",""
-"R10","10K","Resistor_SMD:R_0805_2012Metric","~","",""
-"R11","10K","Resistor_SMD:R_0805_2012Metric","~","",""
-"U1","ATmega328P","Package_QFP:LQFP-32_7x7mm_P0.8mm","","",""
-"U2","LM2596S-5","Package_TO_SOT_SMD:TO-263-5_TabPin3","http://www.ti.com/lit/ds/symlink/lm2596.pdf","",""
-"U3","MAX31855KASA","Package_SO:SOIC-8_3.9x4.9mm_P1.27mm","http://datasheets.maximintegrated.com/en/ds/MAX31855.pdf","",""
-"U4","FT232RL","Package_SO:SSOP-28_5.3x10.2mm_P0.65mm","https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT232R.pdf","",""
-"Y1","ECS-160-18-5PX-TR 16MHz","Britishideas:HC-49_US","~","",""
+Manufacturer Part Number,Manufacturer,Digi-Key Part Number,Quantity,Description
+690-005-299-043,EDAC Inc.,151-1206-1-ND,1,CONN RCPT USB2.0 MINI B SMD R/A
+ECS-160-18-5PX-TR,ECS Inc.,XC2081CT-ND,1,CRYSTAL 16.0000MHZ 18PF SMD
+EEE-HA1V4R7R,Panasonic Electronic Components,PCE4248CT-ND,2,CAP ALUM 4.7UF 20% 35V SMD
+EEE-FK1C681P,Panasonic Electronic Components,PCE3794CT-ND,1,CAP ALUM 680UF 20% 16V SMD
+EEE-1VA100WR,Panasonic Electronic Components,PCE3948CT-ND,2,CAP ALUM 10UF 20% 35V SMD
+EEE-FK1C221P,Panasonic Electronic Components,PCE3787CT-ND,1,CAP ALUM 220UF 20% 16V SMD
+G5LE-14 DC5,Omron Electronics Inc-EMC Div,Z1011-ND,2,RELAY GEN PURPOSE SPDT 10A 5V
+MMBT2222ALT1G,ON Semiconductor,MMBT2222ALT1GOSCT-ND,2,TRANS NPN 40V 600MA SOT23
+ATMEGA328P-AUR,Microchip Technology,ATMEGA328P-AURCT-ND,1,IC MCU 8BIT 32KB FLASH 32TQFP
+LM2596S-5.0/NOPB,Texas Instruments,LM2596S-5.0/NOPB-ND,1,IC REG BUCK 5V 3A TO263-5
+MAX31855KASA+T,Maxim Integrated,MAX31855KASA+TCT-ND,1,IC CONV THERMOCOUPLE-DGTL SOIC
+FT232RL-REEL,"FTDI, Future Technology Devices International Ltd",768-1007-1-ND,1,IC USB FS SERIAL UART 28-SSOP
+LS T67K-J1L2-1-Z,OSRAM Opto Semiconductors Inc.,475-2516-1-ND,1,LED RED CLEAR 2PLCC SMD
+BLM21AG471SH1D,Murata Electronics,490-11039-1-ND,2,FERRITE BEAD 470 OHM 0805 1LN
+7804,Keystone Electronics,36-7804-ND,1,CONN QC TAB 0.250 SOLDER
+7802,Keystone Electronics,36-7802-ND,3,CONN QC TAB 0.250 SOLDER
+CL21B104KBCNNNC,Samsung Electro-Mechanics,1276-1003-1-ND,4,CAP CER 0.1UF 50V X7R 0805
+CL21B105KOFNNNG,Samsung Electro-Mechanics,1276-6471-1-ND,2,CAP CER 1UF 16V X7R 0805
+08055A180JAT2A,AVX Corporation,478-1307-1-ND,2,CAP CER 18PF 50V C0G/NP0 0805
+CL21B103KBANNNC,Samsung Electro-Mechanics,1276-1015-1-ND,1,CAP CER 10000PF 50V X7R 0805
+MMSD4148T1G,ON Semiconductor,MMSD4148T1GOSCT-ND,4,DIODE GEN PURP 100V 200MA SOD123
+RNCP0805FTD1K00,Stackpole Electronics Inc,RNCP0805FTD1K00CT-ND,7,RES 1K OHM 1% 1/4W 0805
+RNCP0805FTD10K0,Stackpole Electronics Inc,RNCP0805FTD10K0CT-ND,4,RES 10K OHM 1% 1/4W 0805
+B360A-13-F,Diodes Incorporated,B360A-FDICT-ND,1,DIODE SCHOTTKY 60V 3A SMA
+MBR0520LT1G,ON Semiconductor,MBR0520LT1GOSCT-ND,1,DIODE SCHOTTKY 20V 500MA SOD123
