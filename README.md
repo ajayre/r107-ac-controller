@@ -24,16 +24,18 @@ The prototype uses the following hardware:
 * Install Microsoft Visual Studio Community Edition 2017 - https://visualstudio.microsoft.com/vs/older-downloads/
 * Install Visual Micro - https://marketplace.visualstudio.com/items?itemName=VisualMicro.ArduinoIDEforVisualStudio
 
-## Programming the Bootloader
+## Custom Board
+
+### Programming the Bootloader
 
 Use the Arduino IDE, choose the ATmega328P and your ISP programmer (e.g. USBtinyISP). If you choose to power the board from the programmer then there is no need to provide power via USP or 12V.
 
-## Programming the Firmware
+### Programming the Firmware
 
 Set the target to ATmega328P (Arduino Nano).
 Remove the RUN jumper. Replace the jumper after programming.
 
-## LED Operation
+### LED Operation
 
 The LED will turn on when firmware execution starts. Note that there is a delay of around two or three seconds while the bootloader runs.
 
@@ -42,6 +44,6 @@ LED on solid = in the 'ready' state, waiting for AC to be turned on. Compressor 
 LED flashing twice = in the 'running' state, blower is on and compressor cycles as needed.
 LED flashing three times = in the 'freeze protection' state, blower in on and compressor is off.
 
-# RUN Jumper
+### RUN Jumper
 
 The RUN jumper should be installed when the board is installed in a vehicle. It needs to be removed during programming. The purpose of the RUN jumper is to stop noise on the receive line from keeping the board in the bootloader mode and stopping firmware from executing.
