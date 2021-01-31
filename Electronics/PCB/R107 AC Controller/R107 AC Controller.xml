@@ -2,7 +2,7 @@
 <export version="D">
   <design>
     <source>C:\Users\andy\OneDrive\Documents\R107-AC-Controller\trunk\Electronics\PCB\R107 AC Controller\R107 AC Controller.sch</source>
-    <date>25/01/2021 20:31:30</date>
+    <date>31/01/2021 14:07:50</date>
     <tool>Eeschema (5.1.6)-1</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
@@ -91,7 +91,7 @@
       <tstamp>5FEA144B</tstamp>
     </comp>
     <comp ref="D7">
-      <value>SS1P3L-M3/84A</value>
+      <value>MBR0520LT1G</value>
       <footprint>Britishideas:SMP_DO-220AA</footprint>
       <datasheet>~</datasheet>
       <libsource lib="Device" part="D" description="Diode"/>
