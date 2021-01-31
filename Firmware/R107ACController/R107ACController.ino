@@ -1,5 +1,5 @@
 // R107/C107 AC Controller (manual climate control)
-// (C) Andy Ayre, 2020, all rights reserved
+// (C) Andy Ayre, 2021, all rights reserved, no commercial usage
 // https://github.com/ajayre/r107-ac-controller
 // Outputs to serial port at 57,600 baud
 
@@ -41,7 +41,11 @@
 // pin for temperature control (analog)
 #define TEMP_SETTING    A0
 // pin for status LED
-#define STATUS_LED       A3
+#define STATUS_LED      A3
+// pin for opt 1
+#define OPT1            A4
+// pin for opt 2
+#define OPT2            A5
 
 // thermocouple errors
 #define THERMOCOUPLE_ERROR_SCV 0x04 // short circuit to vcc
@@ -325,6 +329,8 @@ void setup
   void
   )
 {
+  int opt1, opt2;
+
   // enable watchdog timers with eight second timeout
   // fixme - to do - this does not work with the 'old' bootloader, it will continually reset after the first
   // watchdog reset. need to upgrade to the new bootloader
@@ -341,7 +347,7 @@ void setup
   Serial.flush();
 
   // print banner
-  Serial.println("R107 C107 AC Controller (C) Andy Ayre 2020");
+  Serial.println("R107 C107 AC Controller (C) Andy Ayre 2021");
   Serial.println("andy@britishideas.com");
   Serial.print("Version ");
   Serial.println(VERSION);
@@ -358,6 +364,18 @@ void setup
   // configure control switch
   pinMode(CONTROL_SWITCH, INPUT_PULLUP);
   
+  // configure and read options
+  pinMode(OPT1, INPUT_PULLUP);
+  pinMode(OPT2, INPUT_PULLUP);
+
+  // read option pins, 0 = no jumper installed, 1 = jumper installed
+  // default is no jumpers installed
+  opt1 = digitalRead(OPT1) == 0 ? 1 : 0;
+  opt2 = digitalRead(OPT2) == 0 ? 1 : 0;
+
+  Serial.print("opt1="); Serial.print(opt1);
+  Serial.print(", opt2="); Serial.println(opt2);
+
   wdt_reset();
 
   Serial.println("Init");
