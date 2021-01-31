@@ -47,4 +47,4 @@ The LED will turn on when firmware execution starts. Note that there is a delay 
 
 ### RUN Jumper
 
-The RUN jumper should be installed when the board is installed in a vehicle. It needs to be removed during programming. The purpose of the RUN jumper is to stop noise on the receive line from keeping the board in the bootloader mode and stopping firmware from executing.
+The RUN jumper should be inserted when the board is installed in a vehicle. It needs to be removed during programming. The purpose of the RUN jumper is to stop noise on the receive line from keeping the board in the bootloader mode and stopping firmware from executing.
