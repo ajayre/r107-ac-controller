@@ -28,11 +28,12 @@ The prototype uses the following hardware:
 
 ### Programming the Bootloader
 
-Use the Arduino IDE, choose the ATmega328P and your ISP programmer (e.g. USBtinyISP). If you choose to power the board from the programmer then there is no need to provide power via USP or 12V.
+Use the Arduino IDE, choose the ATmega328P and your ISP programmer (e.g. USBtinyISP). If you choose to power the board from the programmer then there is no need to provide power via USP or 12V. Connect to the six-pin ISP connector.
 
 ### Programming the Firmware
 
 Set the target to 'ATmega328P (Arduino Nano)'.
+Connect to the USB connector - it will appear on your PC as a COM port.
 Remove the RUN jumper. Replace the jumper after programming.
 
 ### LED Operation
