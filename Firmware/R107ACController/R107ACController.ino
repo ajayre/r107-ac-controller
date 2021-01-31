@@ -90,9 +90,8 @@
 #define LED_PATTERN_OFF_TIME 4
 
 // pattern to show on LED in the various state machine states
-#define LED_PATTERN_READY            2
-#define LED_PATTERN_RUNNING          3
-#define LED_PATTERN_FREEZEPROTECTION 4
+#define LED_PATTERN_RUNNING          2
+#define LED_PATTERN_FREEZEPROTECTION 3
 
 // never use simulation for release builds
 #if _DEBUG == 0
@@ -384,7 +383,7 @@ void setup
 
   Serial.println("Ready");
   ACState = READY;
-  EnableLEDPattern(LED_PATTERN_READY);
+  LEDMode = LED_Mode_On;
 }
 
 // the loop function runs over and over again until power down or reset
@@ -455,7 +454,7 @@ void loop
         BLOWER_OFF;
         Serial.println("Ready");
         ACState = READY;
-        EnableLEDPattern(LED_PATTERN_READY);
+        LEDMode = LED_Mode_On;
         break;
       }
 
@@ -463,7 +462,7 @@ void loop
       {
         Serial.println("Ready");
         ACState = READY;
-        EnableLEDPattern(LED_PATTERN_READY);
+        LEDMode = LED_Mode_On;
       }
       break;
 
@@ -502,7 +501,7 @@ void loop
         BLOWER_OFF;
         Serial.println("Ready");
         ACState = READY;
-        EnableLEDPattern(LED_PATTERN_READY);
+        LEDMode = LED_Mode_On;
         break;
       }
 
