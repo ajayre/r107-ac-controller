@@ -32,12 +32,12 @@ Use the Arduino IDE, choose the ATmega328P and your ISP programmer (e.g. USBtiny
 
 ### Programming the Firmware
 
-Set the target to ATmega328P (Arduino Nano).
+Set the target to 'ATmega328P (Arduino Nano)'.
 Remove the RUN jumper. Replace the jumper after programming.
 
 ### LED Operation
 
-The LED will turn on when firmware execution starts. Note that there is a delay of around two or three seconds while the bootloader runs.
+The LED will turn on when firmware execution starts. Note that there is a delay of around two or three seconds while the bootloader runs and the LED will be off during this time.
 
 LED off = power supply problem
 LED on solid = in the 'ready' state, waiting for AC to be turned on. Compressor and blower are off.
