@@ -58,22 +58,13 @@
 #define IS_STATUS_LED_ON (digitalRead(STATUS_LED) == 1 ? FALSE : TRUE)
 
 // blower control macros (connect to NO on relay)
-#if _DEBUG == 1
 #define BLOWER_OFF digitalWrite(BLOWER_MOTOR, LOW); Serial.println("Blower off");
 #define BLOWER_ON  digitalWrite(BLOWER_MOTOR, HIGH); Serial.println("Blower on");
-#else
-#define BLOWER_OFF digitalWrite(BLOWER_MOTOR, LOW)
-#define BLOWER_ON  digitalWrite(BLOWER_MOTOR, HIGH)
-#endif
+#define IS_BLOWER_ON digitalRead(BLOWER_MOTOR)
 
 // compressor control macros (connect to NO on relay)
-#if _DEBUG == 1
 #define COMPRESSOR_OFF digitalWrite(COMPRESSOR, LOW); Serial.println("Compressor off")
 #define COMPRESSOR_ON  digitalWrite(COMPRESSOR, HIGH); Serial.println("Compressor on")
-#else
-#define COMPRESSOR_OFF digitalWrite(COMPRESSOR, LOW)
-#define COMPRESSOR_ON  digitalWrite(COMPRESSOR, HIGH)
-#endif // _DEBUG == 1
 #define IS_COMPRESSOR_ON digitalRead(COMPRESSOR)
 
 // control switch macro
@@ -93,9 +84,15 @@
 // time between patterns as a multiple of LED_PERIOD
 #define LED_PATTERN_OFF_TIME 4
 
+// time between updates of debug output in milliseconds
+#define DEBUG_OUTPUT_PERIOD 250
+
 // pattern to show on LED in the various state machine states
 #define LED_PATTERN_RUNNING          2
 #define LED_PATTERN_FREEZEPROTECTION 3
+
+// number of evap temperature readings to use for averaging
+#define AVERAGING_NUM_EVAP_READINGS 128
 
 // never use simulation for release builds
 #if _DEBUG == 0
@@ -133,6 +130,13 @@ typedef enum _ledpatternstates
 static Adafruit_MAX31855 Thermocouple(CS_THERMOCOUPLE);
 // current ac state
 static ACSTATE ACState = OFF;
+
+// timestamp for debug output
+static unsigned long NextDebugOutputTime;
+
+// averaging of temperature
+static double EvapTemperatures[AVERAGING_NUM_EVAP_READINGS];
+static int EvapReadingIndex;
 
 // LED handling
 static LEDMODES LEDMode;
@@ -331,10 +335,10 @@ void setup
 {
   int opt1, opt2;
 
-  // enable watchdog timers with eight second timeout
-  // fixme - to do - this does not work with the 'old' bootloader, it will continually reset after the first
-  // watchdog reset. need to upgrade to the new bootloader
-  //wdt_enable(WDTO_8S);
+#if _DEBUG == 0
+  // enable watchdog timer with eight second timeout
+  wdt_enable(WDTO_8S);
+#endif
 
   // configure status LED and turn on
   pinMode(STATUS_LED, OUTPUT);
@@ -402,6 +406,11 @@ void setup
   Serial.println("Ready");
   ACState = READY;
   LEDMode = LED_Mode_On;
+
+  NextDebugOutputTime = GetTime() + DEBUG_OUTPUT_PERIOD;
+
+  // no readings yet
+  EvapReadingIndex = 0;
 }
 
 // the loop function runs over and over again until power down or reset
@@ -410,6 +419,9 @@ void loop
   void
   )
 {
+  int r;
+  double Sum;
+
   // feed watchdog
   wdt_reset();
 
@@ -440,14 +452,22 @@ void loop
     // wait for reset
     while (1);
   }
-#if _DEBUG == 1
-  else
+
+  // perform averaging
+  EvapTemperatures[EvapReadingIndex++] = EvapTemperature;
+  if (EvapReadingIndex == AVERAGING_NUM_EVAP_READINGS) EvapReadingIndex = 0;
+  Sum = 0;
+  for (r = 0; r < AVERAGING_NUM_EVAP_READINGS; r++) Sum += EvapTemperatures[r];
+  EvapTemperature = Sum / AVERAGING_NUM_EVAP_READINGS;
+
+  // time to output some mode debug data?
+  if (IsTimeExpired(NextDebugOutputTime))
   {
     Serial.print("Evap = ");
     Serial.println(EvapTemperature);
-    delay(250);
+
+    NextDebugOutputTime = GetTime() + DEBUG_OUTPUT_PERIOD;
   }
-#endif // _DEBUG == 1
 
   // check if SPI is non-functional
   if ((AmbientTemperature == 0) && (EvapTemperature == 0))
@@ -480,6 +500,7 @@ void loop
       {
         Serial.println("Ready");
         ACState = READY;
+        BLOWER_OFF;
         LEDMode = LED_Mode_On;
       }
       break;
@@ -504,10 +525,6 @@ void loop
         Serial.println("Running");
         BLOWER_ON;
         EnableLEDPattern(LED_PATTERN_RUNNING);
-      }
-      else
-      {
-        BLOWER_OFF;
       }
       break;
 
@@ -548,11 +565,11 @@ void loop
       // turn compressor on or off as needed
       if (EvapTemperature <= TargetEvapTemperature)
       {
-        COMPRESSOR_OFF;
+        if (IS_COMPRESSOR_ON) { COMPRESSOR_OFF; }
       }
       else if (EvapTemperature > (TargetEvapTemperature + TEMP_HYSTERESIS))
       {
-        COMPRESSOR_ON;
+        if (!IS_COMPRESSOR_ON) { COMPRESSOR_ON; }
       }
       break;
   }
