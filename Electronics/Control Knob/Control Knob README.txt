@@ -4,7 +4,7 @@ CONTROL KNOB README
 Hardware
 --------
 
-The pot is 10KOhm with integrated switch, 1/4" shaft and 300 degrees of rotation.
+The pot is linear 10KOhm with integrated switch, 1/4" shaft and 300 degrees of rotation.
 
 I used a Philmore PC245 from a local electronics store.
 
