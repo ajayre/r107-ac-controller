@@ -84,15 +84,16 @@
 // time between patterns as a multiple of LED_PERIOD
 #define LED_PATTERN_OFF_TIME 4
 
-// time between updates of debug output in milliseconds
-#define DEBUG_OUTPUT_PERIOD 250
-
 // pattern to show on LED in the various state machine states
 #define LED_PATTERN_RUNNING          2
 #define LED_PATTERN_FREEZEPROTECTION 3
 
+// time between updates of debug output in milliseconds
+#define DEBUG_OUTPUT_PERIOD 500
+
 // number of evap temperature readings to use for averaging
-#define AVERAGING_NUM_EVAP_READINGS 128
+// larger number = more smoothing, lower number = faster response to changes
+#define AVERAGING_NUM_EVAP_READINGS 256
 
 // never use simulation for release builds
 #if _DEBUG == 0
@@ -135,8 +136,9 @@ static ACSTATE ACState = OFF;
 static unsigned long NextDebugOutputTime;
 
 // averaging of temperature
-static double EvapTemperatures[AVERAGING_NUM_EVAP_READINGS];
-static int EvapReadingIndex;
+static double EvapTemperatureAverageN;
+static int EvapTemperatureValid;
+static int EvapTemperatureReadings;
 
 // LED handling
 static LEDMODES LEDMode;
@@ -307,15 +309,19 @@ static double GetTargetEvapTemperature
 (
   double TempSetting,                           // user's temp setting 0 (min) -> 100 (max)
   double AmbientTemperature,                    // in degrees C, taken from behind dashboard, NOT equal to outside temp
-  double EvapTemperature                        // in degrees C
+  double EvapTemperature,                       // in degrees C
+  int OutputDebugData                           // TRUE to allow output of debug data
   )
 {
-  Serial.print("Temp setting = ");
-  Serial.print(TempSetting);
-  if (TempSetting > INSIDE_AIR_THRESHOLD)
-    Serial.println(" (inside)");
-  else
-    Serial.println(" (fresh air)");
+  if (OutputDebugData)
+  {
+    Serial.print("Knob setting % = ");
+    Serial.print(TempSetting);
+    if (TempSetting > INSIDE_AIR_THRESHOLD)
+      Serial.println(" (inside)");
+    else
+      Serial.println(" (fresh air)");
+  }
 
   // get controllable temperarure range
   double MinTemp = MINIMUM_TEMPERATURE;
@@ -336,8 +342,8 @@ void setup
   int opt1, opt2;
 
 #if _DEBUG == 0
-  // enable watchdog timer with eight second timeout
-  wdt_enable(WDTO_8S);
+  // enable watchdog timer with two second timeout
+  wdt_enable(WDTO_2S);
 #endif
 
   // configure status LED and turn on
@@ -410,7 +416,9 @@ void setup
   NextDebugOutputTime = GetTime() + DEBUG_OUTPUT_PERIOD;
 
   // no readings yet
-  EvapReadingIndex = 0;
+  EvapTemperatureAverageN = 0;
+  EvapTemperatureValid = FALSE;
+  EvapTemperatureReadings = 0;
 }
 
 // the loop function runs over and over again until power down or reset
@@ -419,8 +427,8 @@ void loop
   void
   )
 {
-  int r;
-  double Sum;
+  double AveragedEvapTemperature;
+  int OutputDebugData = FALSE;
 
   // feed watchdog
   wdt_reset();
@@ -454,19 +462,44 @@ void loop
   }
 
   // perform averaging
-  EvapTemperatures[EvapReadingIndex++] = EvapTemperature;
-  if (EvapReadingIndex == AVERAGING_NUM_EVAP_READINGS) EvapReadingIndex = 0;
-  Sum = 0;
-  for (r = 0; r < AVERAGING_NUM_EVAP_READINGS; r++) Sum += EvapTemperatures[r];
-  EvapTemperature = Sum / AVERAGING_NUM_EVAP_READINGS;
+  if (EvapTemperatureReadings > 0)
+  {
+    EvapTemperatureAverageN = EvapTemperatureAverageN + EvapTemperature - (EvapTemperatureAverageN / AVERAGING_NUM_EVAP_READINGS);
+    AveragedEvapTemperature = EvapTemperatureAverageN / AVERAGING_NUM_EVAP_READINGS;
+  }
+  else
+  {
+    // first sample, use it to set up the averaging data
+    EvapTemperatureAverageN = EvapTemperature * AVERAGING_NUM_EVAP_READINGS;
+  }
+  if (!EvapTemperatureValid)
+  {
+    EvapTemperatureReadings++;
+    if (EvapTemperatureReadings == AVERAGING_NUM_EVAP_READINGS)
+    {
+      EvapTemperatureValid = TRUE;
+    }
+  }
 
   // time to output some mode debug data?
   if (IsTimeExpired(NextDebugOutputTime))
   {
-    Serial.print("Evap = ");
-    Serial.println(EvapTemperature);
-
+    OutputDebugData = TRUE;
     NextDebugOutputTime = GetTime() + DEBUG_OUTPUT_PERIOD;
+  }
+  else
+  {
+    OutputDebugData = FALSE;
+  }
+
+  // show current evap temperature
+  if (OutputDebugData)
+  {
+    if (EvapTemperatureValid)
+    {
+      Serial.print("Evap = ");
+      Serial.println(AveragedEvapTemperature);
+    }
   }
 
   // check if SPI is non-functional
@@ -496,7 +529,7 @@ void loop
         break;
       }
 
-      if (EvapTemperature >= (MINIMUM_TEMPERATURE + FREEZEPROTECTION_HYSTERESIS))
+      if (EvapTemperatureValid && (AveragedEvapTemperature >= (MINIMUM_TEMPERATURE + FREEZEPROTECTION_HYSTERESIS)))
       {
         Serial.println("Ready");
         ACState = READY;
@@ -541,7 +574,7 @@ void loop
       }
 
       // check for minimum evap temo
-      if (EvapTemperature <= MINIMUM_TEMPERATURE)
+      if (EvapTemperatureValid && (AveragedEvapTemperature <= MINIMUM_TEMPERATURE))
       {
         COMPRESSOR_OFF;
         Serial.println("Freeze protection");
@@ -557,17 +590,20 @@ void loop
       if (TempSetting > 100) TempSetting = 100;
 
       // get the target temperature in degrees C
-      double TargetEvapTemperature = GetTargetEvapTemperature(TempSetting, AmbientTemperature, EvapTemperature);
+      double TargetEvapTemperature = GetTargetEvapTemperature(TempSetting, AmbientTemperature, AveragedEvapTemperature, OutputDebugData);
       if (TargetEvapTemperature < MINIMUM_TEMPERATURE) TargetEvapTemperature = MINIMUM_TEMPERATURE;
-      Serial.print("Target temp = ");
-      Serial.println(TargetEvapTemperature);
+      if (OutputDebugData)
+      {
+        Serial.print("Target temp = ");
+        Serial.println(TargetEvapTemperature);
+      }
 
       // turn compressor on or off as needed
-      if (EvapTemperature <= TargetEvapTemperature)
+      if (EvapTemperatureValid && (AveragedEvapTemperature <= TargetEvapTemperature))
       {
         if (IS_COMPRESSOR_ON) { COMPRESSOR_OFF; }
       }
-      else if (EvapTemperature > (TargetEvapTemperature + TEMP_HYSTERESIS))
+      else if (EvapTemperatureValid && (AveragedEvapTemperature > (TargetEvapTemperature + TEMP_HYSTERESIS)))
       {
         if (!IS_COMPRESSOR_ON) { COMPRESSOR_ON; }
       }
