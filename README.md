@@ -42,7 +42,7 @@ The LED will turn on when firmware execution starts. Note that there is a delay 
 
 * LED off = power supply problem
 * LED on solid = in the 'ready' state, waiting for AC to be turned on. Compressor and blower are off
-* LED on with flash off every two seconds = hardware error, corrupted firmware
+* LED on with flash off every two seconds = hardware error or corrupted firmware
 * LED continually flashing = error
 * LED flashing twice = in the 'running' state, blower is on and compressor cycles as needed
 * LED flashing three times = in the 'freeze protection' state, blower is on and compressor is off
