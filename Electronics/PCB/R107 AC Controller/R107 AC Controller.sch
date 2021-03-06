@@ -14,7 +14,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L BritishIdeas:ATmega328P U1
+L R107-AC-Controller-rescue:ATmega328P-BritishIdeas U1
 U 1 1 5FE91942
 P 2650 3400
 F 0 "U1" H 2700 3350 50  0000 C CNN

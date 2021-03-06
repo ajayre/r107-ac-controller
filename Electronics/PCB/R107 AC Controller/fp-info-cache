@@ -1,4 +1,4 @@
-18638114694458855
+18668798339562138
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -50672,6 +50672,139 @@ One digit LED 7 segment SA39-11 SC39-11 SA39-12 SC39-12
 0
 10
 10
+EmSA
+C6S-12.000-12-3030-X
+
+
+0
+4
+4
+EmSA
+DB9 RA MALE LD09P13A4
+
+
+0
+11
+9
+EmSA
+EmSALogo_10mm
+
+
+0
+0
+0
+EmSA
+EmSALogo_20mm
+
+
+0
+0
+0
+EmSA
+EmSALogo_25mm
+
+
+0
+0
+0
+EmSA
+EmSALogo_30mm
+
+
+0
+0
+0
+EmSA
+EmSALogo_35mm
+
+
+0
+0
+0
+EmSA
+EmSALogo_40mm
+
+
+0
+0
+0
+EmSA
+H10S-12.000-18-5050-EXT-TR
+
+
+0
+4
+4
+EmSA
+LM3940
+
+
+0
+4
+4
+EmSA
+PrototypingArea3V3
+Through hole straight socket strip, 1x02, 2.54mm pitch, single row (from Kicad 4.0.7), script generated
+Through hole socket strip THT 1x02 2.54mm single row
+0
+2
+2
+EmSA
+PrototypingArea5V
+Through hole straight socket strip, 1x02, 2.54mm pitch, single row (from Kicad 4.0.7), script generated
+Through hole socket strip THT 1x02 2.54mm single row
+0
+2
+2
+EmSA
+PrototypingAreaGND
+Through hole straight socket strip, 1x02, 2.54mm pitch, single row (from Kicad 4.0.7), script generated
+Through hole socket strip THT 1x02 2.54mm single row
+0
+2
+2
+EmSA
+PrototypingHole
+Through hole straight socket strip, 1x02, 2.54mm pitch, single row (from Kicad 4.0.7), script generated
+Through hole socket strip THT 1x02 2.54mm single row
+0
+1
+1
+EmSA
+QR_canopeniam0_10mm
+
+
+0
+0
+0
+EmSA
+QR_canopeniam0_20mm
+
+
+0
+0
+0
+EmSA
+QR_esacademycom_20mm
+
+
+0
+0
+0
+EmSA
+SOD-123
+
+
+0
+2
+2
+EmSA
+TL6330 Tactile Switch
+
+
+0
+4
+2
 Ferrite_THT
 LairdTech_28C0236-0JW-10
 Ferrite, vertical, LairdTech 28C0236-0JW-10, https://assets.lairdtech.com/home/brandworld/files/28C0236-0JW-10.pdf, JW Miller core https://www.bourns.com/products/magnetic-products/j.w.-miller-through-hole-ferrite-beads-emi-filters

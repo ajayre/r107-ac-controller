@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name BritishIdeas)(type Legacy)(uri "C:/Users/andy/Dropbox (Personal)/Backups/KiCADLibrary-20181201/BritishIdeas.lib")(options "")(descr ""))
+  (lib (name R107-AC-Controller-rescue)(type Legacy)(uri "${KIPRJMOD}/R107 AC Controller-rescue.lib")(options "")(descr ""))
 )
